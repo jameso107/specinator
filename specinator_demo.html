@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Specinator | Exceptions Review Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: radial-gradient(circle at top, #111827, #020817 55%);
+      color: #e5e7eb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, -apple-system, BlinkMacSystemFont, "SF Pro", sans-serif;
+    }
+    .pill-toggle input { display: none; }
+    .pill-toggle label {
+      cursor: pointer;
+      padding: 0.15rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .pill-toggle label[data-state="off"] {
+      background-color: transparent;
+      color: #9ca3af;
+      border-color: #374151;
+    }
+    .pill-toggle label[data-state="on-yes"] {
+      background-color: #22c55e22;
+      color: #22c55e;
+      border-color: #22c55e55;
+    }
+    .pill-toggle label[data-state="on-no"] {
+      background-color: #ef444422;
+      color: #f97316;
+      border-color: #f9731655;
+    }
+    .glass {
+      backdrop-filter: blur(16px);
+      background: linear-gradient(
+        to bottom right,
+        rgba(15,23,42,0.95),
+        rgba(12,19,34,0.98)
+      );
+      border: 1px solid rgba(148,163,253,0.18);
+      box-shadow: 0 18px 50px rgba(15,23,42,0.65);
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background-color: #4b5563;
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <header class="w-full border-b border-slate-800/80 bg-slate-950/70 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="h-7 w-7 rounded-full bg-gradient-to-tr from-orange-400 to-indigo-500 flex items-center justify-center text-xs font-bold tracking-tight">
+          S
+        </div>
+        <div>
+          <h1 class="text-sm font-semibold tracking-wide text-slate-100 uppercase">
+            Specinator
+          </h1>
+          <p class="text-[0.65rem] text-slate-400 -mt-0.5">
+            Specification Exceptions Review – Demo
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-[0.65rem] text-slate-400">
+        <span class="hidden sm:inline">PPG Internal Prototype</span>
+        <span class="px-2 py-1 rounded-full bg-slate-900/80 border border-slate-700/80 text-[0.6rem]">
+          Read-only Demo · No real PDF processing
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-4">
+    <section class="flex flex-wrap items-center gap-4 text-[0.7rem] text-slate-400">
+      <div class="flex items-center gap-2">
+        <div class="h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center text-[0.6rem] font-semibold">1</div>
+        <span>Upload specification</span>
+      </div>
+      <div class="h-px w-6 bg-slate-600/70"></div>
+      <div class="flex items-center gap-2">
+        <div class="h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center text-[0.6rem] font-semibold">2</div>
+        <span>Review AI-suggested exceptions</span>
+      </div>
+      <div class="h-px w-6 bg-slate-600/70"></div>
+      <div class="flex items-center gap-2">
+        <div class="h-5 w-5 rounded-full bg-orange-500 flex items-center justify-center text-[0.6rem] font-semibold">3</div>
+        <span>Generate cover-page table & export</span>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.6fr)_minmax(260px,0.9fr)] gap-4 items-start">
+      <section class="glass rounded-2xl p-4 flex flex-col gap-4">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <h2 class="text-xs font-semibold text-slate-200 tracking-wide uppercase">
+              1 · Upload Project Specification
+            </h2>
+            <span id="projectNameDisplay" class="text-[0.65rem] text-slate-400 italic">
+              Project: Example – 15kV Switchgear Spec
+            </span>
+          </div>
+          <label
+            for="fileInput"
+            class="flex flex-col items-center justify-center gap-1 border border-dashed border-slate-600/90 rounded-xl px-4 py-3 cursor-pointer bg-slate-900/60 hover:border-orange-400/80 hover:bg-slate-900/90 transition"
+          >
+            <span class="text-[0.7rem] text-slate-300">
+              Drop PDF here or <span class="text-orange-400 font-semibold">browse</span>
+            </span>
+            <span id="fileName" class="text-[0.6rem] text-slate-500">
+              demo.pdf selected (simulated)
+            </span>
+            <input id="fileInput" type="file" accept="application/pdf" class="hidden" />
+          </label>
+          <p class="mt-1 text-[0.6rem] text-slate-500">
+            In the full version, upload triggers AI + rule engine to auto-populate the table below.
+          </p>
+        </div>
+
+        <div class="mt-2 flex items-center justify-between gap-2">
+          <h2 class="text-xs font-semibold text-slate-200 tracking-wide uppercase">
+            2 · Exceptions Review Table
+          </h2>
+          <div class="flex items-center gap-2 text-[0.6rem]">
+            <span id="reviewStatus" class="px-2 py-0.5 rounded-full bg-slate-900/90 border border-slate-700/90 text-slate-300">
+              2 / 5 reviewed
+            </span>
+            <button
+              id="showUnreviewed"
+              class="px-2 py-0.5 rounded-full border border-slate-700/90 text-slate-400 hover:text-orange-400 hover:border-orange-400/80 transition"
+            >
+              Filter: Unreviewed
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-1 border border-slate-800/80 rounded-xl overflow-hidden bg-slate-950/70">
+          <div class="overflow-x-auto scrollbar-thin">
+            <table class="min-w-full text-[0.65rem] text-left text-slate-300">
+              <thead class="bg-slate-900/90 text-slate-400 text-[0.6rem] uppercase tracking-wide">
+                <tr>
+                  <th class="px-3 py-2">Accepted</th>
+                  <th class="px-3 py-2">Category</th>
+                  <th class="px-3 py-2">Rule</th>
+                  <th class="px-3 py-2">Citation</th>
+                  <th class="px-3 py-2 w-[40%]">Exact Language (excerpt)</th>
+                  <th class="px-3 py-2">Reviewer Notes</th>
+                </tr>
+              </thead>
+              <tbody id="exceptionsBody" class="divide-y divide-slate-800/80">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-[0.6rem]">
+          <div class="flex items-center gap-2">
+            <button
+              id="bulkAccept"
+              class="px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700/90 text-slate-300 hover:bg-orange-500/10 hover:border-orange-400/80 hover:text-orange-300 transition"
+            >
+              Accept all visible
+            </button>
+            <button
+              id="bulkDecline"
+              class="px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700/90 text-slate-300 hover:bg-rose-500/10 hover:border-rose-400/80 hover:text-rose-300 transition"
+            >
+              Decline all visible
+            </button>
+          </div>
+          <p class="text-slate-500">
+            This demo uses sample rows. Real system will populate from your PPG ruleset.
+          </p>
+        </div>
+      </section>
+
+      <aside class="glass rounded-2xl p-4 flex flex-col gap-3">
+        <div>
+          <h2 class="text-xs font-semibold text-slate-200 tracking-wide uppercase">
+            3 · Generate Cover Page Summary
+          </h2>
+          <p class="text-[0.65rem] text-slate-400 mt-1">
+            Once all rows are marked, Specinator builds a one-page Exceptions Review Table and appends your original spec automatically.
+          </p>
+        </div>
+
+        <div class="mt-1 space-y-1 text-[0.63rem] text-slate-300">
+          <div class="flex items-center justify-between">
+            <span>Total rows</span>
+            <span id="statTotal" class="font-semibold text-slate-100"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Accepted as exceptions</span>
+            <span id="statAccepted" class="text-emerald-400 font-medium"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Declined / Not applicable</span>
+            <span id="statDeclined" class="text-rose-400 font-medium"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span>Unreviewed</span>
+            <span id="statPending" class="text-orange-400 font-medium"></span>
+          </div>
+        </div>
+
+        <button
+          id="generateBtn"
+          class="mt-3 w-full py-2 text-[0.7rem] font-semibold rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-indigo-500 text-slate-950 shadow-lg shadow-orange-900/40 hover:shadow-orange-500/40 hover:scale-[1.01] transition disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Preview Cover Page Table (Demo)
+        </button>
+        <p id="exportHint" class="text-[0.6rem] text-slate-500">
+          Complete review of all rows to enable export.
+        </p>
+
+        <div class="mt-4 border-t border-slate-800/80 pt-3 space-y-1 text-[0.6rem] text-slate-400">
+          <p class="font-semibold text-slate-300">
+            What your client should see:
+          </p>
+          <ul class="list-disc list-inside space-y-0.5">
+            <li>AI does the tedious scan; humans stay in control with one table.</li>
+            <li>Clear Accepted/Declined decisions with citations for every line.</li>
+            <li>Single exportable PDF: summary table + untouched spec.</li>
+            <li>Configurable to Pioneer Power Group’s exact rules and risk profile.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div
+    id="modal"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center px-3 z-50 hidden"
+  >
+    <div class="glass rounded-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+      <div class="px-4 py-3 flex items-center justify-between border-b border-slate-800/90">
+        <div>
+          <h3 class="text-xs font-semibold text-slate-100 tracking-wide uppercase">
+            Cover Page Preview · Exceptions Review Table
+          </h3>
+          <p class="text-[0.6rem] text-slate-400">
+            Demo of the page that will be prepended ahead of the original specification.
+          </p>
+        </div>
+        <button
+          id="closeModal"
+          class="px-2 py-1 rounded-lg bg-slate-900/90 text-slate-300 text-[0.65rem] hover:bg-slate-800 transition"
+        >
+          Close
+        </button>
+      </div>
+      <div class="p-4 overflow-auto text-[0.6rem] bg-slate-950/95">
+        <div class="border border-slate-800/90 rounded-xl p-3 bg-slate-950/98">
+          <h2 class="text-center text-sm font-semibold text-slate-100 mb-1">
+            Exceptions Review Table – Pioneer Power Group
+          </h2>
+          <p id="modalProject" class="text-center text-[0.6rem] text-slate-400 mb-2">
+            Project: Example – 15kV Switchgear Spec · Generated: Demo
+          </p>
+          <table class="w-full border border-slate-800/90 rounded-lg overflow-hidden">
+            <thead class="bg-slate-900/95 text-slate-400">
+              <tr>
+                <th class="px-2 py-1 text-left">Accepted</th>
+                <th class="px-2 py-1 text-left">Category</th>
+                <th class="px-2 py-1 text-left">Rule</th>
+                <th class="px-2 py-1 text-left">Citation</th>
+                <th class="px-2 py-1 text-left">Exact Language</th>
+                <th class="px-2 py-1 text-left">Reviewer Notes</th>
+              </tr>
+            </thead>
+            <tbody id="modalTableBody" class="divide-y divide-slate-800/90 text-slate-200">
+            </tbody>
+          </table>
+          <p class="mt-3 text-[0.57rem] text-slate-500 leading-snug">
+            This foreword has been auto-generated per PPG-AI according to the Specifications Review Protocol
+            and reviewed by the user. It precedes the original specification for record and review purposes.
+          </p>
+        </div>
+        <p class="mt-2 text-[0.55rem] text-slate-500 italic">
+          In production, clicking “Export” here would generate a single PDF file
+          (this table as page 1 + your original specification).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const rows = [
+      {
+        id: 1,
+        category: "Exception",
+        ruleKey: "Manufacturer Performs Study",
+        citation: "Section 1.06(C)",
+        text: "Short-circuit, coordination, and arc-flash studies shall be performed by the switchgear manufacturer.",
+        accepted: true,
+        note: "Standard PPG exception – requires manufacturer; flagged."
+      },
+      {
+        id: 2,
+        category: "PossibleException",
+        ruleKey: "Selective Coordination",
+        citation: "Section 2.04(B)",
+        text: "Provide selective coordination for all overcurrent devices down to the 0.01 second region.",
+        accepted: null,
+        note: ""
+      },
+      {
+        id: 3,
+        category: "OptionalAdder",
+        ruleKey: "Arc Flash Stickers by Supplier",
+        citation: "Section 1.07(A)",
+        text: "Provide and apply arc-flash warning labels at all equipment by study provider.",
+        accepted: null,
+        note: ""
+      },
+      {
+        id: 4,
+        category: "Exception",
+        ruleKey: "On-Site Startup by Manufacturer Only",
+        citation: "Section 3.01",
+        text: "All field testing and startup shall be performed exclusively by the equipment manufacturer.",
+        accepted: false,
+        note: "PPG can support via approved partners."
+      },
+      {
+        id: 5,
+        category: "Note",
+        ruleKey: "Bound Copies",
+        citation: "Section 1.02",
+        text: "Provide three bound copies of all study reports.",
+        accepted: false,
+        note: "Tracked as note only; not an exception."
+      }
+    ];
+
+    let filterUnreviewed = false;
+
+    const bodyEl = document.getElementById("exceptionsBody");
+    const reviewStatusEl = document.getElementById("reviewStatus");
+    const statTotalEl = document.getElementById("statTotal");
+    const statAcceptedEl = document.getElementById("statAccepted");
+    const statDeclinedEl = document.getElementById("statDeclined");
+    const statPendingEl = document.getElementById("statPending");
+    const showUnreviewedBtn = document.getElementById("showUnreviewed");
+    const bulkAcceptBtn = document.getElementById("bulkAccept");
+    const bulkDeclineBtn = document.getElementById("bulkDecline");
+    const generateBtn = document.getElementById("generateBtn");
+    const exportHint = document.getElementById("exportHint");
+    const fileInput = document.getElementById("fileInput");
+    const fileNameEl = document.getElementById("fileName");
+    const modal = document.getElementById("modal");
+    const closeModal = document.getElementById("closeModal");
+    const modalTableBody = document.getElementById("modalTableBody");
+    const modalProject = document.getElementById("modalProject");
+    const projectNameDisplay = document.getElementById("projectNameDisplay");
+
+    function createToggle(row) {
+      const wrap = document.createElement("div");
+      wrap.className = "pill-toggle inline-flex items-center gap-1";
+
+      const yes = document.createElement("label");
+      yes.textContent = "Yes";
+      const no = document.createElement("label");
+      no.textContent = "No";
+
+      function sync() {
+        if (row.accepted === true) {
+          yes.setAttribute("data-state", "on-yes");
+          no.setAttribute("data-state", "off");
+        } else if (row.accepted === false) {
+          yes.setAttribute("data-state", "off");
+          no.setAttribute("data-state", "on-no");
+        } else {
+          yes.setAttribute("data-state", "off");
+          no.setAttribute("data-state", "off");
+        }
+      }
+
+      yes.addEventListener("click", (e) => {
+        e.preventDefault();
+        row.accepted = row.accepted === true ? null : true;
+        sync();
+        updateStats();
+        renderTable();
+      });
+
+      no.addEventListener("click", (e) => {
+        e.preventDefault();
+        row.accepted = row.accepted === false ? null : false;
+        sync();
+        updateStats();
+        renderTable();
+      });
+
+      sync();
+      wrap.appendChild(yes);
+      wrap.appendChild(no);
+      return wrap;
+    }
+
+    function renderTable() {
+      bodyEl.innerHTML = "";
+      const visible = rows.filter(r => !filterUnreviewed || r.accepted === null);
+
+      visible.forEach(row => {
+        const tr = document.createElement("tr");
+
+        const acceptedTd = document.createElement("td");
+        acceptedTd.className = "px-3 py-2 align-top";
+        acceptedTd.appendChild(createToggle(row));
+        tr.appendChild(acceptedTd);
+
+        const catTd = document.createElement("td");
+        catTd.className = "px-3 py-2 align-top";
+        catTd.innerHTML =
+          '<span class="px-1.5 py-0.5 rounded-full text-[0.55rem] ' +
+          (row.category === "Exception"
+            ? "bg-orange-500/10 text-orange-300 border border-orange-500/40"
+            : row.category === "PossibleException"
+            ? "bg-amber-500/5 text-amber-300 border border-amber-500/30"
+            : row.category === "OptionalAdder"
+            ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/40"
+            : "bg-slate-700/40 text-slate-200 border border-slate-500/40") +
+          '">' + row.category + "</span>";
+        tr.appendChild(catTd);
+
+        const ruleTd = document.createElement("td");
+        ruleTd.className = "px-3 py-2 align-top text-slate-200";
+        ruleTd.textContent = row.ruleKey;
+        tr.appendChild(ruleTd);
+
+        const citTd = document.createElement("td");
+        citTd.className = "px-3 py-2 align-top text-slate-400";
+        citTd.textContent = row.citation;
+        tr.appendChild(citTd);
+
+        const textTd = document.createElement("td");
+        textTd.className = "px-3 py-2 align-top text-slate-300";
+        textTd.textContent = row.text;
+        tr.appendChild(textTd);
+
+        const noteTd = document.createElement("td");
+        noteTd.className = "px-3 py-2 align-top";
+        const noteInput = document.createElement("input");
+        noteInput.type = "text";
+        noteInput.value = row.note || "";
+        noteInput.placeholder = "Add note...";
+        noteInput.className =
+          "w-full rounded-md bg-slate-900/80 border border-slate-700/80 px-2 py-1 text-[0.6rem] text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-orange-500/70";
+        noteInput.addEventListener("input", () => {
+          row.note = noteInput.value;
+        });
+        noteTd.appendChild(noteInput);
+        tr.appendChild(noteTd);
+
+        bodyEl.appendChild(tr);
+      });
+    }
+
+    function updateStats() {
+      const total = rows.length;
+      const accepted = rows.filter(r => r.accepted === true).length;
+      const declined = rows.filter(r => r.accepted === false).length;
+      const pending = rows.filter(r => r.accepted === null).length;
+
+      reviewStatusEl.textContent = `${total - pending} / ${total} reviewed`;
+      statTotalEl.textContent = total;
+      statAcceptedEl.textContent = accepted;
+      statDeclinedEl.textContent = declined;
+      statPendingEl.textContent = pending;
+
+      const allReviewed = pending === 0;
+      generateBtn.disabled = !allReviewed;
+      exportHint.textContent = allReviewed
+        ? "Ready: Click “Preview Cover Page Table” to show your client the final foreword that would be exported."
+        : "Complete all Accept/Decline decisions to enable cover page generation.";
+    }
+
+    showUnreviewedBtn.addEventListener("click", () => {
+      filterUnreviewed = !filterUnreviewed;
+      showUnreviewedBtn.textContent = filterUnreviewed
+        ? "Filter: All rows"
+        : "Filter: Unreviewed";
+      renderTable();
+    });
+
+    bulkAcceptBtn.addEventListener("click", () => {
+      rows.forEach(r => {
+        if (!filterUnreviewed || r.accepted === null) r.accepted = true;
+      });
+      updateStats();
+      renderTable();
+    });
+
+    bulkDeclineBtn.addEventListener("click", () => {
+      rows.forEach(r => {
+        if (!filterUnreviewed || r.accepted === null) r.accepted = false;
+      });
+      updateStats();
+      renderTable();
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        fileNameEl.textContent = file.name;
+        projectNameDisplay.textContent = `Project: ${file.name.replace(/\.[^/.]+$/, "")}`;
+      } else {
+        fileNameEl.textContent = "No file selected";
+      }
+    });
+
+    generateBtn.addEventListener("click", () => {
+      const tableBody = modalTableBody;
+      tableBody.innerHTML = "";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-2 py-1">${r.accepted ? "True" : "False"}</td>
+          <td class="px-2 py-1">${r.category}</td>
+          <td class="px-2 py-1">${r.ruleKey}</td>
+          <td class="px-2 py-1 text-slate-400">${r.citation}</td>
+          <td class="px-2 py-1">${r.text}</td>
+          <td class="px-2 py-1 text-slate-400">${r.note || ""}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+      modalProject.textContent = projectNameDisplay.textContent + " · Generated: Demo";
+      modal.classList.remove("hidden");
+    });
+
+    closeModal.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.add("hidden");
+    });
+
+    renderTable();
+    updateStats();
+  </script>
+</body>
+</html>
